@@ -1,0 +1,19 @@
+# Optional per-farm regional data source registry — design-time extension point ONLY.
+#
+# docs/02_design.md §(d): 赤潮ネット・貧酸素水塊予測は都道府県/地域ごとに個別システムが
+# 分立しており統一APIが存在しない。v1 では自動取得を実装せず、farm_id ごとに手動で
+# 参照URLを記録できる拡張点としてスキーマのみ用意する（species_profile.regional_source_refs
+# と対になる拡張点）。
+#
+# This file is intentionally NOT consumed by any pre_process/Stage1 code path in v1 —
+# it exists so that a future version can wire farm-specific regional feeds without a
+# schema migration. Leave empty or populate manually; no automated fetch occurs.
+
+farms: []
+# Example (v2+ future shape — not read by v1 code):
+# farms:
+#   - farm_id: "farm-001"
+#     regional_sources:
+#       - name: "瀬戸内海赤潮ネット"
+#         url: "https://example.pref.example.jp/red-tide-net"
+#         type: "manual_reference"

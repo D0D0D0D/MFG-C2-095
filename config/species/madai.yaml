@@ -1,0 +1,125 @@
+# Species profile — マダイ (Pagrus major / red seabream), 魚類
+#
+# docs/02_design.md §(a): metric / category / agent / inputs.type are dictionary
+# references resolved by this file — NOT hardcoded enums in code. Adding a new
+# species = adding a new profile file, no code change.
+#
+# ── Alarm limits ─────────────────────────────────────────────────────────────
+# Each metric declares up to four OPTIONAL scalar thresholds, following the
+# OPC UA LimitAlarmType convention (OPC 10000-9 §5.8.11):
+#
+#     low_low_limit <= low_limit <= high_limit <= high_high_limit
+#
+#     value <  low_low_limit   or  value >  high_high_limit  -> critical
+#     value <  low_limit       or  value >  high_limit       -> medium
+#     otherwise                                              -> no signal
+#
+# Omit a side to declare "no danger zone there": turbidity has only high_*,
+# dissolved_oxygen only low_*, water_temp all four. `normal_range` is kept for
+# display/explanation only and is NOT used to score observations.
+#
+# ── Provenance (READ THIS BEFORE USING IN PRODUCTION) ────────────────────────
+# The numeric limits below are UNVERIFIED placeholder values, generated to
+# exercise the implementation. They have NOT been checked against fisheries
+# research literature and MUST NOT be relied on for operational decisions.
+#
+# docs/02_design.md §(a): the initial species set is an implementation-verification
+# example; the real set is fixed to the PoC customer's farmed species. Before a
+# PoC, replace these with values sourced from the customer's own records or from
+# cited literature, and record the source in `limits_source` below.
+
+species_code: "madai"
+species_name_ja: "マダイ"
+species_name_en: "red seabream"
+taxon_group: "fish"          # fish / crustacean / bivalve / seaweed
+limits_source: "UNVERIFIED — placeholder values for implementation verification (see header)"
+
+# ── Monitored metrics and warning ranges ─────────────────────────────────
+# Used by Stage 1 signal detection (range check against these bounds, in
+# addition to the multi-year same-week deviation check which uses the
+# farm's own env_observations history).
+metrics:
+  water_temp:
+    unit: "celsius"
+    normal_range: [18.0, 28.0]
+    low_low_limit: 10.0
+    low_limit: 15.0
+    high_limit: 30.0
+    high_high_limit: 33.0
+    notes: "急激な水温低下（24時間で3度以上）は活性低下・摂餌不良のシグナル"
+  dissolved_oxygen:
+    unit: "mg/L"
+    normal_range: [5.0, 12.0]
+    low_low_limit: 3.5
+    low_limit: 5.0
+    notes: "3.0mg/L未満が継続すると窒息リスク（貧酸素水塊）"
+  salinity:
+    unit: "psu"
+    normal_range: [28.0, 35.0]
+    low_low_limit: 15.0
+    low_limit: 28.0
+    notes: "大雨後の急激な低下に注意"
+  ph:
+    unit: "ph"
+    normal_range: [7.8, 8.4]
+    low_low_limit: 7.0
+    low_limit: 7.8
+  turbidity:
+    unit: "ntu"
+    normal_range: [0.0, 10.0]
+    high_limit: 10.0
+    high_high_limit: 30.0
+
+# ── Disease / disaster triggers (category dictionary) ────────────────────
+# category values referenced by incidents.category
+disease_triggers:
+  - category: "disease"
+    agent: "viral_nervous_necrosis"
+    agent_ja: "ウイルス性神経壊死症(VNNV)"
+    environmental_signals: ["water_temp>25 sustained", "juvenile_stage"]
+    severity_baseline: "high"
+  - category: "disease"
+    agent: "streptococcosis"
+    agent_ja: "連鎖球菌症"
+    environmental_signals: ["water_temp>25", "high_density"]
+    severity_baseline: "medium"
+  - category: "hypoxia"
+    agent: "dissolved_oxygen_depletion"
+    agent_ja: "貧酸素水塊"
+    environmental_signals: ["dissolved_oxygen<3.5 sustained", "high_water_temp", "low_current"]
+    severity_baseline: "critical"
+  - category: "red_tide"
+    agent: "harmful_algal_bloom"
+    agent_ja: "赤潮"
+    environmental_signals: ["water_temp>24", "turbidity_rising", "calm_weather_sustained"]
+    severity_baseline: "critical"
+  - category: "typhoon"
+    agent: "storm_surge_wave_damage"
+    agent_ja: "台風接近に伴う高波・生簀損壊"
+    environmental_signals: ["jma_typhoon_warning"]
+    severity_baseline: "critical"
+  - category: "cold"
+    agent: "cold_water_shock"
+    agent_ja: "急激な低水温ショック"
+    environmental_signals: ["water_temp drop >3C/24h"]
+    severity_baseline: "high"
+
+# ── Input/treatment type dictionary (inputs.type) ─────────────────────────
+input_types:
+  - type: "feeding"
+    label_ja: "給餌"
+  - type: "seeding"
+    label_ja: "種苗投入"
+  - type: "vaccination"
+    label_ja: "ワクチン接種"
+  - type: "medication"
+    label_ja: "投薬"
+  - type: "water_exchange"
+    label_ja: "換水"
+  - type: "net_cleaning"
+    label_ja: "網掃除"
+
+# ── Optional regional data source extension point (design placeholder only) ──
+# docs/02_design.md §(d): scoped as a schema-level extension point;
+# automated fetch is NOT implemented in v1.
+regional_source_refs: []

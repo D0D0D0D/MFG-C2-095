@@ -1,0 +1,107 @@
+# Species profile — クルマエビ (Penaeus japonicus / kuruma prawn), 甲殻類
+#
+# docs/02_design.md §(a): metric / category / agent / inputs.type are dictionary
+# references resolved by this file — NOT hardcoded enums in code. Adding a new
+# species = adding a new profile file, no code change.
+#
+# ── Alarm limits ─────────────────────────────────────────────────────────────
+# Each metric declares up to four OPTIONAL scalar thresholds, following the
+# OPC UA LimitAlarmType convention (OPC 10000-9 §5.8.11):
+#
+#     low_low_limit <= low_limit <= high_limit <= high_high_limit
+#
+#     value <  low_low_limit   or  value >  high_high_limit  -> critical
+#     value <  low_limit       or  value >  high_limit       -> medium
+#     otherwise                                              -> no signal
+#
+# Omit a side to declare "no danger zone there": turbidity has only high_*,
+# dissolved_oxygen only low_*, water_temp all four. `normal_range` is kept for
+# display/explanation only and is NOT used to score observations.
+#
+# ── Provenance (READ THIS BEFORE USING IN PRODUCTION) ────────────────────────
+# The numeric limits below are UNVERIFIED placeholder values, generated to
+# exercise the implementation. They have NOT been checked against fisheries
+# research literature and MUST NOT be relied on for operational decisions.
+#
+# docs/02_design.md §(a): the initial species set is an implementation-verification
+# example; the real set is fixed to the PoC customer's farmed species. Before a
+# PoC, replace these with values sourced from the customer's own records or from
+# cited literature, and record the source in `limits_source` below.
+
+species_code: "kuruma_ebi"
+species_name_ja: "クルマエビ"
+species_name_en: "kuruma prawn"
+taxon_group: "crustacean"
+limits_source: "UNVERIFIED — placeholder values for implementation verification (see header)"
+
+metrics:
+  water_temp:
+    unit: "celsius"
+    normal_range: [22.0, 30.0]
+    low_low_limit: 13.0
+    low_limit: 18.0
+    high_limit: 32.0
+    high_high_limit: 35.0
+    notes: "18度未満で摂餌停止・活性低下"
+  dissolved_oxygen:
+    unit: "mg/L"
+    normal_range: [4.5, 10.0]
+    low_low_limit: 3.0
+    low_limit: 4.5
+    notes: "夜間・早朝の酸欠に注意（底層養殖池で特に顕著）"
+  salinity:
+    unit: "psu"
+    normal_range: [20.0, 32.0]
+    low_low_limit: 8.0
+    low_limit: 20.0
+  ph:
+    unit: "ph"
+    normal_range: [7.5, 8.5]
+    low_low_limit: 6.5
+    low_limit: 7.5
+  turbidity:
+    unit: "ntu"
+    normal_range: [0.0, 15.0]
+    high_limit: 15.0
+    high_high_limit: 40.0
+
+disease_triggers:
+  - category: "disease"
+    agent: "white_spot_syndrome_virus"
+    agent_ja: "白点病(WSSV)"
+    environmental_signals: ["water_temp drop", "high_density", "stress_event"]
+    severity_baseline: "critical"
+  - category: "disease"
+    agent: "vibriosis"
+    agent_ja: "ビブリオ病"
+    environmental_signals: ["water_temp>28", "organic_load_high"]
+    severity_baseline: "high"
+  - category: "hypoxia"
+    agent: "dissolved_oxygen_depletion"
+    agent_ja: "酸欠（底層蓄積）"
+    environmental_signals: ["dissolved_oxygen<3.0 sustained", "calm_weather"]
+    severity_baseline: "critical"
+  - category: "typhoon"
+    agent: "pond_overflow_escape"
+    agent_ja: "台風による池溢水・逃亡"
+    environmental_signals: ["jma_typhoon_warning", "heavy_rain_warning"]
+    severity_baseline: "critical"
+  - category: "cold"
+    agent: "cold_water_shock"
+    agent_ja: "急激な低水温による活性低下・大量死"
+    environmental_signals: ["water_temp drop >3C/24h"]
+    severity_baseline: "high"
+
+input_types:
+  - type: "feeding"
+    label_ja: "給餌"
+  - type: "seeding"
+    label_ja: "種苗投入"
+  - type: "medication"
+    label_ja: "投薬"
+  - type: "water_exchange"
+    label_ja: "換水"
+  - type: "pond_bottom_cleaning"
+    label_ja: "池底清掃"
+
+regional_source_refs: []

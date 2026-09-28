@@ -1,0 +1,7 @@
+# Runtime parameters - loaded by AgentRegistry and passed as Graph(config=...).
+
+max_retry: 3
+timeout_seconds: 30
+memory_enabled: false
+hitl:
+  enabled: false

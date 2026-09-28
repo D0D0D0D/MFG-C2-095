@@ -1,0 +1,31 @@
+# Agent Manifest - AgentRegistry entry point
+# AgentRegistry reads every key below at ROOT level; do not nest under `agent:`.
+
+# HITL declaration added on develop. Keep it at top level for reviewer/PB-7 compatibility.
+memory_enabled: false
+hitl:
+  enabled: false
+
+id: "MFG-C2-095"
+name: "AquacultureEnvironmentalEarlyWarningAgent"
+namespace: "mfg"
+version: "1.0.0"
+enabled: true
+category: "Cat 2"
+generation_mode: "llm"
+industry: "MFG"
+
+# Opaque compatibility metadata. Runtime tuning lives in config/config.yaml.
+base_type: "AgentBaseGraph"
+
+# Entry point - single dotted import path (module.Class).
+class: "src.graph.graph.AquacultureEarlyWarningGraph"
+
+# Security
+required_trust_level: "VERIFIED_EXTERNAL"
+
+requires:
+  secrets:
+    - "ANTHROPIC_API_KEY"
+  extras:
+    - "anthropic"
